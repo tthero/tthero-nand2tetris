@@ -1,0 +1,50 @@
+    @4
+    D=A
+    @xMax
+    M=D
+    @16
+    D=A
+    @yMax
+    M=D
+    @i
+    M=0
+(LOOPX)
+    @i
+    D=M
+    @xMax
+    D=M-D
+    @ENDB
+    D;JEQ
+    @i
+    D=M
+    @SCREEN
+    D=D+A
+    @currScr
+    M=D
+    @j
+    M=0
+(LOOPY)
+    @j
+    D=M
+    @yMax
+    D=M-D
+    @ENDLOOPY
+    D;JEQ
+    @32
+    D=A
+    @currScr
+    AM=M+D
+    M=-1
+    @j
+    M=M+1
+    @LOOPY
+    0;JMP
+(LOOPY)
+    @i
+    M=M+1
+    @LOOPX
+    0;JMP
+
+(END)
+    @END
+    0;JMP    

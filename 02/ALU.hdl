@@ -1,0 +1,83 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/02/ALU.hdl
+
+/**
+ * The ALU (Arithmetic Logic Unit).
+ * Computes one of the following functions:
+ * x+y, x-y, y-x, 0, 1, -1, x, y, -x, -y, !x, !y,
+ * x+1, y+1, x-1, y-1, x&y, x|y on two 16-bit inputs, 
+ * according to 6 input bits denoted zx,nx,zy,ny,f,no.
+ * In addition, the ALU computes two 1-bit outputs:
+ * if the ALU output == 0, zr is set to 1; otherwise zr is set to 0;
+ * if the ALU output < 0, ng is set to 1; otherwise ng is set to 0.
+ */
+
+// Implementation: the ALU logic manipulates the x and y inputs
+// and operates on the resulting values, as follows:
+// if (zx == 1) set x = 0        // 16-bit constant
+// if (nx == 1) set x = !x       // bitwise not
+// if (zy == 1) set y = 0        // 16-bit constant
+// if (ny == 1) set y = !y       // bitwise not
+// if (f == 1)  set out = x + y  // integer 2's complement addition
+// if (f == 0)  set out = x & y  // bitwise and
+// if (no == 1) set out = !out   // bitwise not
+// if (out == 0) set zr = 1
+// if (out < 0) set ng = 1
+
+CHIP ALU {
+    IN  
+        x[16], y[16],  // 16-bit inputs        
+        zx, // zero the x input?
+        nx, // negate the x input?
+        zy, // zero the y input?
+        ny, // negate the y input?
+        f,  // compute out = x + y (if 1) or x & y (if 0)
+        no; // negate the out output?
+
+    OUT 
+        out[16], // 16-bit output
+        zr, // 1 if (out == 0), 0 otherwise
+        ng; // 1 if (out < 0),  0 otherwise
+
+    PARTS:
+    // Put you code here:
+    // Zero the x input?
+    And16(a=x, b=false, out=xZero);
+    Mux16(a=x, b=xZero, sel=zx, out=outZX);
+
+    // Negate the x input?
+    Not16(in=outZX, out=xNeg);
+    Mux16(a=outZX, b=xNeg, sel=nx, out=outNX);
+
+    // Zero the y input?
+    And16(a=y, b=false, out=yZero);
+    Mux16(a=y, b=yZero, sel=zy, out=outZY);
+
+    // Negate the y input?
+    Not16(in=outZY, out=yNeg);
+    Mux16(a=outZY, b=yNeg, sel=ny, out=outNY);
+
+    // 2's complement addition OR biwise and
+    And16(a=outNX, b=outNY, out=outAnd);
+    Add16(a=outNX, b=outNY, out=outAdd);
+    Mux16(a=outAnd, b=outAdd, sel=f, out=outF);
+
+    // "Bitwise not" the result?
+    Not16(in=outF, out=outFN);
+    Mux16(a=outF, b=outFN, sel=no, out[0..7]=result1, out[8..14]=result2, out[15]=resultMSB);
+
+    // Lastly, outputting zr & ng
+    // Using Or8Way to get the result of zr
+    Or8Way(in=result1, out=outZero1);
+    Or8Way(in[0..6]=result2, in[7]=resultMSB, out=outZero2);
+    Or(a=outZero1, b=outZero2, out=outZero);
+    Not(in=outZero, out=zr);
+
+    // For the ng
+    And(a=resultMSB, b=true, out=ng);
+    
+    // To retrieve the output
+    And16(a[0..7]=result1, a[8..14]=result2, a[15]=resultMSB, b=true, out=out);
+}
