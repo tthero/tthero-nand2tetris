@@ -7,8 +7,11 @@ import re
 _PUSH_POP = ['push','pop']
 _DOUBLE_OP = ['add','sub','and','or','gt','eq','lt']
 _SINGLE_OP = ['not','neg']
-_SEGMENTS = {'static':16,'constant':'','local':'LCL','argument':'ARG',
-             'this':'THIS','that':'THAT','pointer':['THIS','THAT'],'temp':5}
+_SEGMENTS = {'static':"16", 'constant':'','local':'LCL','argument':'ARG',
+             'this':'THIS','that':'THAT','pointer':['THIS','THAT'],'temp':"5"}
+
+# Jumper numbers
+_jump_counter = 0
 
 def VMParser(line, line_num):
     """
@@ -27,37 +30,32 @@ def VMParser(line, line_num):
     if line:
         # (3) Check for the syntax of the line
         comm = line.split(' ')
-        try:
-            if comm[0] in _PUSH_POP:
-                if len(comm) < 3:
-                    raise SyntaxError("Line " + str(line_num) + " - " + "Too few arguments in " + comm[0] + ".")
-                elif len(comm) > 3:
-                    raise SyntaxError("Line " + str(line_num) + " - " + "Too many arguments in " + comm[0] + ".")
+        
+        if comm[0] in _PUSH_POP:
+            if len(comm) < 3:
+                raise SyntaxError("Line " + str(line_num) + " - " + "Too few arguments in " + comm[0] + ".")
+            elif len(comm) > 3:
+                raise SyntaxError("Line " + str(line_num) + " - " + "Too many arguments in " + comm[0] + ".")
 
-                if comm[0] == 'pop' and comm[1] == 'constant':
-                    raise SyntaxError("Line " + str(line_num) + " - " + "Constant cannot be used in pop.")
-                    
-                if comm[1] in _SEGMENTS:
-                    if not comm[2].isdigit() and int(comm[2]) < 0:
-                        raise SyntaxError("Line " + str(line_num) + " - " + comm[0].capitalize() + " only allows non-negative integers.")
-                    elif not comm[2]:
-                        raise SyntaxError("Line " + str(line_num) + " - " + "Missing non-negative integers in " + comm[0] + ".")
-                    elif comm[1] == 'pointer' and int(comm[2]) >= 2:
-                        raise SyntaxError("Line " + str(line_num) + " - " + comm[1] + " only allows 0/1 in " + comm[0] + ".")
-                else:
-                    raise SyntaxError("Line " + str(line_num) + " - " + "Unrecognised segment.")
-
-            elif comm[0] in _DOUBLE_OP + _SINGLE_OP:
-                if len(comm) > 1:
-                    raise SyntaxError("Line " + str(line_num) + " - " + "Too many arguments.")
-
+            if comm[0] == 'pop' and comm[1] == 'constant':
+                raise SyntaxError("Line " + str(line_num) + " - " + "Constant cannot be used in pop.")
+                
+            if comm[1] in _SEGMENTS:
+                if not comm[2].isdigit() and int(comm[2]) < 0:
+                    raise SyntaxError("Line " + str(line_num) + " - " + comm[0].capitalize() + " only allows non-negative integers.")
+                elif not comm[2]:
+                    raise SyntaxError("Line " + str(line_num) + " - " + "Missing non-negative integers in " + comm[0] + ".")
+                elif comm[1] == 'pointer' and int(comm[2]) >= 2:
+                    raise SyntaxError("Line " + str(line_num) + " - " + comm[1] + " only allows 0/1 in " + comm[0] + ".")
             else:
-                raise SyntaxError("Line " + str(line_num) + " - " + "Unrecognised command.")
-        except SyntaxError as err:
-            print("Syntax error on", err)
-            print("VM Translation failed.")
-        except Exception:
-            raise SyntaxError("Line " + str(line_num) + " - " + "Unrecognised segment.")
+                raise SyntaxError("Line " + str(line_num) + " - " + "Unrecognised segment.")
+
+        elif comm[0] in _DOUBLE_OP + _SINGLE_OP:
+            if len(comm) > 1:
+                raise SyntaxError("Line " + str(line_num) + " - " + "Too many arguments.")
+
+        else:
+            raise SyntaxError("Line " + str(line_num) + " - " + "Unrecognised command.")
 
         result = comm
 
@@ -105,53 +103,177 @@ def ASMCodeWriter(comms):
     A=M     // RAM[RAM[0]+1] = segment+i
     M=D     // RAM[segment+i]
     ===========
-
-    === add/sub/and/or ===
-    @SP
-    AM=M-1
-    D=M
-    A=A-1
-    M=M+D or M=M-D or M=M&D or M=M|D
-
-    === not/neg ===
-    @SP
-    A=M-1
-    M=!M
-    M=M+1 (for neg only)
-
-    === lt/gt/eq ===
-    @SP
-    AM=M-1
-    D=M
-    A=A-1
-    D=M-D
-    M=-1
-    @TRUE
-    D;JLT / D;JGT / D;JEQ
-    @SP
-    A=M-1
-    M=0
-    (TRUE)
-
     """
+    result = ""
 
-    def push_pop():
-        # Segment and constant
-        s = _SEGMENTS[comms[1]]
-        
-        # Common parts (part 1)
-        
-        @segment
-        D=M
-        @i  // constant
-        A=A+D
-        D=M
+    # Debug: print the VM code in comment form:
+    result += '// ' + ' '.join(comms) + '\n'
 
+    def push_pop(comms):
+        nonlocal result
+
+        segment, val = comms[1:]
+        # PUSH
+        if comms[0] == "push":
+            # Determining the segment
+            if segment == "constant":
+                result += '\n'.join((
+                    "@" + val,
+                    "D=A"
+                ))
+            elif segment == "pointer":
+                result += '\n'.join((
+                    "@" + _SEGMENTS[segment][int(val)],
+                    "D=M"
+                ))
+            elif segment == "temp":
+                result += '\n'.join((
+                    "@" + _SEGMENTS[segment],
+                    "D=A",
+                    "@" + val,
+                    "A=A+D",
+                    "D=M"
+                ))
+            else:
+                result += '\n'.join((
+                    "@" + _SEGMENTS[segment],
+                    "D=M",
+                    "@" + val,
+                    "A=A+D",
+                    "D=M"
+                ))
+            result += '\n'
+        
+            # Dealing with stack pointer (SP)
+            result += '\n'.join((
+                "@SP",
+                "A=M",
+                "M=D",
+                "@SP",
+                "M=M+1"
+            ))
+        # POP
+        else:
+            # Determining the segment
+            if segment == "pointer":
+                result += '\n'.join((
+                    "@" + _SEGMENTS[segment][int(val)],
+                    "D=A"
+                ))
+            elif segment == "temp":
+                result += '\n'.join((
+                    "@" + _SEGMENTS[segment],
+                    "D=A",
+                    "@" + val,
+                    "D=A+D"
+                ))
+            else:
+                result += '\n'.join((
+                    "@" + _SEGMENTS[segment],
+                    "D=M",
+                    "@" + val,
+                    "D=A+D"
+                ))
+            result += '\n'
+            
+            # Dealing with stack pointer (SP)
+            result += '\n'.join((
+                "@SP",
+                "A=M",
+                "M=D",
+                "@SP",
+                "AM=M-1",
+                "D=M",
+                "@SP",
+                "A=M+1",
+                "A=M",
+                "M=D"
+            ))
     
+    def arithmetics(comms):
+        nonlocal result
+
+        """
+        === add/sub/and/or ===
+        @SP
+        AM=M-1
+        D=M
+        A=A-1
+        M=M+D or M=M-D or M=M&D or M=M|D
+
+        === not/neg ===
+        @SP
+        A=M-1
+        M=!M
+        M=M+1 (for neg only)
+
+        === lt/gt/eq ===
+        @SP
+        AM=M-1
+        D=M
+        A=A-1
+        D=M-D
+        M=-1
+        @TRUE
+        D;JLT / D;JGT / D;JEQ
+        @SP
+        A=M-1
+        M=0
+        (TRUE)
+
+        """
+        if comms[0] in _DOUBLE_OP:
+            # Beginning of common section
+            result += '\n'.join((
+                "@SP",
+                "AM=M-1",
+                "D=M",
+                "A=A-1"
+            ))
+            result += '\n'
+
+            # Add, sub, and, or, gt, eq, lt
+            if comms[0] == "add":
+                result += "M=M+D"
+            elif comms[0] == "sub":
+                result += "M=M-D"
+            elif comms[0] == "and":
+                result += "M=M&D"
+            elif comms[0] == "or":
+                result += "M=M|D"
+            elif comms[0] in ["gt", "eq", "lt"]:
+                global _jump_counter
+
+                result += '\n'.join((
+                    "D=M-D",
+                    "M=-1",
+                    "@TRUE" + str(_jump_counter),
+                    "D;JGT" if comms[0] == "gt" else (
+                        "D;JEQ" if comms[0] == "eq" else "D;JLT"
+                    ),
+                    "@SP",
+                    "A=M-1",
+                    "M=0",
+                    "(TRUE" + str(_jump_counter) + ")"
+                ))
+
+                _jump_counter += 1
+        else:
+            result += '\n'.join((
+                "@SP",
+                "A=M-1",
+                "M=!M",
+                "M=M+1" if comms[0] == "neg" else ""
+            ))
+
     if comms[0] in _PUSH_POP:
         push_pop(comms)
-    elif comms[0] in 
+    elif comms[0] in _DOUBLE_OP + _SINGLE_OP:
+        arithmetics(comms)
     
+    result += '\n'
+    
+    return result
 
 def VMTranslator():
     try:
@@ -181,11 +303,6 @@ def VMTranslator():
     res = []
     line_num = 1
     try:
-        # (1) Input handler: Parser
-        pass
-        # (2) Output handler: Code Writer
-        pass
-
         # VM code parser
         for line in vm_file:
             r = VMParser(line, line_num)
@@ -194,11 +311,13 @@ def VMTranslator():
             line_num += 1
 
         # Assembly code writer
-        # for line in res:
-        #     asm_file.write(ASMCodeWriter(line))
+        for line in res:
+            asm_file.write(ASMCodeWriter(line))
         
         print("VM Translation succeeded.")
-
+    except SyntaxError as err:
+        print("Syntax error on", err)
+        print("VM Translation failed.")
     finally:
         vm_file.close()
         asm_file.close()
