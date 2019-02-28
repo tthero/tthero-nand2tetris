@@ -232,6 +232,7 @@ def HackStraightener(line, line_num):
                 result = line
             else:
                 raise SyntaxError("Line " + str(line_num + 1) + " - Unknown instruction found")
+        
     return result
 
 
@@ -274,7 +275,11 @@ def Assembler():
         # Hack Translator
         for line in res:
             res_file.write(HackTranslate(line))
-        
+
+        print("Assembler succeeded.")
+    except SyntaxError as err:
+        print("Syntax error on", err)
+        print("Assembler failed.")
     finally:
         asm_file.close()
         res_file.close()
