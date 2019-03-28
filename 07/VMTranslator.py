@@ -1,6 +1,7 @@
 """
-VM to HACK Translator Python
+VM to HACK Translator Python Part 1
 """
+
 import sys
 import re
 
@@ -10,7 +11,7 @@ _SINGLE_OP = ['not','neg']
 _SEGMENTS = {'static':"16", 'constant':'','local':'LCL','argument':'ARG',
              'this':'THIS','that':'THAT','pointer':['THIS','THAT'],'temp':"5"}
 
-# Jumper numbers
+# Counters
 _jump_counter = 0
 
 def VMParser(line, line_num):
@@ -23,13 +24,13 @@ def VMParser(line, line_num):
     result = []
 
     line = line.strip(" \n")
-    # (1) Comments handler
+    # Comments handler
     if line.find("//") >= 0:
         line = line[:line.find("//")]
 
     if line:
-        # (3) Check for the syntax of the line
-        comm = line.split(' ')
+        # Check for the syntax of the line
+        comm = line.strip(' ').split(' ')
         
         if comm[0] in _PUSH_POP:
             if len(comm) < 3:
@@ -69,41 +70,6 @@ def ASMCodeWriter(comms):
     the Parser
     """
 
-    """
-    push segment i
-    === segment ===
-    @segment
-    D=M
-    @i  // constant
-    A=A+D
-    D=M
-    === push ===
-    @SP
-    A=M
-    M=D
-    @SP
-    M=M+1
-    ============
-
-    pop segment i
-    === segment ===
-    @segment
-    D=M
-    @i // constant
-    D=A+D
-    === pop ===
-    @SP
-    A=M
-    M=D
-    @SP
-    AM=M-1
-    D=M
-    @SP
-    A=M+1   // RAM[0]+1 = (SP-1)+1
-    A=M     // RAM[RAM[0]+1] = segment+i
-    M=D     // RAM[segment+i]
-    ===========
-    """
     result = ""
 
     # Debug: print the VM code in comment form:
@@ -193,35 +159,6 @@ def ASMCodeWriter(comms):
     def arithmetics(comms):
         nonlocal result
 
-        """
-        === add/sub/and/or ===
-        @SP
-        AM=M-1
-        D=M
-        A=A-1
-        M=M+D or M=M-D or M=M&D or M=M|D
-
-        === not/neg ===
-        @SP
-        A=M-1
-        M=!M
-        M=M+1 (for neg only)
-
-        === lt/gt/eq ===
-        @SP
-        AM=M-1
-        D=M
-        A=A-1
-        D=M-D
-        M=-1
-        @TRUE
-        D;JLT / D;JGT / D;JEQ
-        @SP
-        A=M-1
-        M=0
-        (TRUE)
-
-        """
         if comms[0] in _DOUBLE_OP:
             # Beginning of common section
             result += '\n'.join((
