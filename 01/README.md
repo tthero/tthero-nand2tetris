@@ -69,7 +69,7 @@ Exclusive or, returns either A or B but not the overlapping part of A and B.
  1 | 0 | 1
  1 | 1 | 0
 
-### Multiplexor (MUX)
+### Multiplexer (MUX)
 Plexors (or Multiplexers) are three-input logic gates that has an input as selection bit to be used to select one of the two inputs as output. They can also be known as “selectors”. 
 Returns one output of a or b based on the state of sel.
 `Mux(a, b, sel) = Or(And(Not(sel), a), And(sel, b))`
@@ -87,7 +87,7 @@ Returns one output of a or b based on the state of sel.
  1 | 0 | **1** | 0
  1 | 1 | **1** | 1
 
-### Demultiplexor (DMUX)
+### Demultiplexer (DMUX)
 Demultiplexers are the opposite of multiplexers, which they select which one of the two outputs based on the state of the selection bit.
 Returns the input on outputs a or b based on the state of sel
 `DMux(in, sel) = (And(in, Not(sel)), And(in, sel)) = (a, b)`
@@ -105,6 +105,20 @@ Returns the input on outputs a or b based on the state of sel
 Multi-bit logic gates (termed buses) allow one to handle larger capacity of integers. In any `n`-bit bus, for example named `data`, each individual bit can be referred using this notation:
 `data[0], data[1], ..., data[n-1], data[n]`
 
-### Not16, And16, Or16, Mux16
+### Not16
+![NOT16](pic/NOT16.png)
 
-Or8Way, Mux4Way16, Mux8Way16, DMux4Way, DMux8Way
+For Not16, to access each bit individually for both input and output, it can be accessed as shown below.
+`Not(in=in[0], out=out[0])` for bit 1, `Not(in=in[n], out=out[n])` for bit n.
+
+### And16, Or16
+Same goes for And16 and Or16, just with an extra input.
+`Or(in1=in1[0], in2=in2[0], out=out[0])` for bit 1, `Or(in1=in1[n], in2=in2[n], out=out[n])` for bit n.
+
+![AND16](pic/AND16.png)
+![OR16](pic/OR16.png)
+
+For multi-way buses, they have multiple inputs and/or multiple outputs.
+### Or8Way
+It will comprise of several Or gates 
+### Mux4Way16, Mux8Way16, DMux4Way, DMux8Way
