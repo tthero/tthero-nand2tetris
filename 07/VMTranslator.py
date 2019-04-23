@@ -30,7 +30,14 @@ def VMParser(line, line_num):
 
     if line:
         # Check for the syntax of the line
-        comm = line.strip(' ').split(' ')
+        # Remove all possible tabs 
+        s = line.strip(' \t')
+        while '\t' in s:
+            s = s[:s.find('\t')] + s[s.find('\t')+1:]
+        comm = []
+        for i in s.split(" "):
+            if i:
+                comm.append(i)
         
         if comm[0] in _PUSH_POP:
             if len(comm) < 3:
