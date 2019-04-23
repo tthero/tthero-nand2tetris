@@ -133,7 +133,7 @@ For example, for this Mux4Way16, 4-way will have a total of 2 control bits as sh
 ![MUX4WAY16](pic/MUX4WAY16.png)
 
 sel[1] | sel[0] | out
-- | - | - 
+--- | --- | --- 
 0 | 0 | a
 0 | 1 | b
 1 | 0 | c
@@ -146,8 +146,9 @@ While for _m_-way demultiplexers, through a selector or set of control bits of l
 ![DMUX4WAY](pic/DMUX4WAY.png)
 
 Table below explains everything what I want to explain :sweat_smile:
+
 sel[1] | sel[0] | a | b | c | d
-- | - | - | - | - | -
+--- | --- | --- | --- | --- | ---
 0 | 0 | in | 0 | 0 | 0
 0 | 1 | 0 | in | 0 | 0
 1 | 0 | 0 | 0 | in | 0
