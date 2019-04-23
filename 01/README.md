@@ -1,6 +1,6 @@
 # Project 1: Boolean Logic
 
-**Last updated: 28-12-2018**
+**Last updated: 23-4-2019**
 
 ## Projects:
 ### NAND Gate
@@ -17,10 +17,10 @@ NAND gate will be used as the fundamental building block for most logic gates in
 
 Common elementary logic gates are And, Or, Not, Xor, etc.  As some logic gates comprising of many Nand logic gates can become too packed and confusing to read, they will be abstracted instead and used as one of the components for several other logic gates, which are also known as composite gates. For example, Xor logic gate will be `And(Nand(a, b), Or(a, b))` instead of `Nand(Nand(Nand(a,b), Nand(Nand(a, a), Nand(b, b)), Nand(Nand(a,b), Nand(Nand(a, a), Nand(b, b)))` (Too ugly…).
 
-Hardware Description Language (HDL) is used as one modelling framework to plan and test a certain chip architecture in a computer. Using the program Hardware Simulator (and Logisim to create schematics of logic gates), various common logic gates can be made and tested virtually and easily while still be able to yield desired results which are comparable to hardware counterparts.
+Hardware Description Language (HDL) is used as one modelling framework to plan and test a certain chip architecture in a computer. Using the provided program Hardware Simulator (and [Logisim](http://www.cburch.com/logisim/) to create schematics of logic gates), various common logic gates can be made and tested virtually and easily while still be able to yield desired results which are comparable to hardware counterparts.
 
 ### NOT Gate
-Returns negation of input.
+Also known as "converter", it returns negation of input.
 `Not(in) = Nand(in, in)`
 
 ![NOT gate](pic/NOT.png)
@@ -109,16 +109,46 @@ Multi-bit logic gates (termed buses) allow one to handle larger capacity of inte
 ![NOT16](pic/NOT16.png)
 
 For Not16, to access each bit individually for both input and output, it can be accessed as shown below.
-`Not(in=in[0], out=out[0])` for bit 1, `Not(in=in[n], out=out[n])` for bit n.
+`Not(in=in[0], out=out[0])` for bit 1
+`Not(in=in[15], out=out[15])` for bit 16
 
 ### And16, Or16
 Same goes for And16 and Or16, just with an extra input.
-`Or(in1=in1[0], in2=in2[0], out=out[0])` for bit 1, `Or(in1=in1[n], in2=in2[n], out=out[n])` for bit n.
+`Or(in1=in1[0], in2=in2[0], out=out[0])` for bit 1
+`Or(in1=in1[15], in2=in2[15], out=out[15])` for bit 16
 
 ![AND16](pic/AND16.png)
 ![OR16](pic/OR16.png)
 
 For multi-way buses, they have multiple inputs and/or multiple outputs.
 ### Or8Way
-It will comprise of several Or gates 
+It comprises of several Or gates to accommodate 8 inputs to yield one single output. Each Or gate only allows 2 inputs, thus in this case, for _n_ number of inputs (usually it must be 2^_n_ inputs), (_n_ - 1) number of Or gates is required.
+
+![OR8WAY](pic/OR8WAY.png)
+
 ### Mux4Way16, Mux8Way16, DMux4Way, DMux8Way
+For _m_-way multiplexers, in order to accommodate for _m_ number of inputs to yield one desired output, the selector will be a set of control bits of log2(_m_). 
+For example, for this Mux4Way16, 4-way will have a total of 2 control bits as shown below.
+
+![MUX4WAY16](pic/MUX4WAY16.png)
+
+sel[1] | sel[0] | out
+- | - | - 
+0 | 0 | a
+0 | 1 | b
+1 | 0 | c
+1 | 1 | d
+
+Mux8Way16 will have similar construction as Mux4Way16, with the difference of having 3 control bits to select the output.
+
+While for _m_-way demultiplexers, through a selector or set of control bits of log2(_m_), one can selectively output the input to output bit based on specified control bit.
+
+![DMUX4WAY](pic/DMUX4WAY.png)
+
+Table below explains everything what I want to explain :sweat_smile:
+sel[1] | sel[0] | a | b | c | d
+- | - | - | - | - | -
+0 | 0 | in | 0 | 0 | 0
+0 | 1 | 0 | in | 0 | 0
+1 | 0 | 0 | 0 | in | 0
+1 | 1 | 0 | 0 | 0 | in
