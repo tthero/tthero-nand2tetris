@@ -142,6 +142,7 @@ sel[1] | sel[0] | out
 Mux8Way16 will have similar construction as Mux4Way16, with the difference of having 3 control bits to select the output.
 
 While for _m_-way demultiplexers, through a selector or set of control bits of log2(_m_), one can selectively output the input to output bit based on specified control bit.
+Below is the construction of DMux4Way, 4-way demultiplexer.
 
 ![DMUX4WAY](pic/DMUX4WAY.png)
 
@@ -153,3 +154,5 @@ sel[1] | sel[0] | a | b | c | d
 0 | 1 | 0 | in | 0 | 0
 1 | 0 | 0 | 0 | in | 0
 1 | 1 | 0 | 0 | 0 | in
+
+DMux8Way will have similar construction as DMux4Way, with the difference of having 3 control bits to select the output.
