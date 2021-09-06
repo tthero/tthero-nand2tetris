@@ -20,6 +20,6 @@ Disclaimer: All project descriptions are entirely just based on my own opinion, 
 - [Chapter 8 - Virtual Machine II: Program Control](08/)
 - Chapter 9 - High-Level Language (WIP)
 - Chapter 10 - Compiler I: Syntax Analysis (WIP)
-- Chapter 11 - Boolean Logic (WIP)
-- Chapter 12 - Boolean Logic (WIP)
+- Chapter 11 - Compiler II: Code Generation (WIP)
+- Chapter 12 - Operating System (WIP)
 
